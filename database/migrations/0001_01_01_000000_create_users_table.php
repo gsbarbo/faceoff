@@ -4,19 +4,31 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->bigInteger('id')->unsigned()->primary();
+
+            $table->string('discord_name');
+            $table->string('discord_username');
+            $table->integer('discord_discriminator')->nullable();
+            $table->string('avatar');
+            $table->string('email');
+
+            $table->string('activision_id')->nullable();
+            
+            $table->integer('status')->default(1);
+            $table->string('display_name')->nullable();
+
+            $table->timestamp('last_login_at')->nullable();
+
+            $table->boolean('is_super_user')->default(0);
+            $table->boolean('is_owner')->default(0);
+
             $table->rememberToken();
             $table->timestamps();
         });
