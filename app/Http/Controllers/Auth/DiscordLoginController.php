@@ -13,7 +13,6 @@ class DiscordLoginController extends Controller
     {
         $discordUser = Socialite::driver('discord')->user();
         $user = $this->findOrNewUser($discordUser);
-
         Auth::login($user, true);
 
         return redirect()->intended()->with('alerts', [['message' => 'Welcome!', 'level' => 'success']]);
@@ -24,7 +23,7 @@ class DiscordLoginController extends Controller
         $user = User::where('id', $discordUser->getId())->first();
 
         if (is_null($discordUser->avatar)) {
-            $avatar = 'https://ui-avatars.com/api/?name=' . urlencode($discordUser->user['global_name']);
+            $avatar = 'https://ui-avatars.com/api/?name='.urlencode($discordUser->user['global_name']);
         } else {
             $avatar = $discordUser->avatar;
         }

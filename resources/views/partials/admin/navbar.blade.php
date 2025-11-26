@@ -1,14 +1,19 @@
 <nav x-data="{ mobileOpen:false }" class="w-full bg-charcoal-light shadow-sm ">
 
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between md:justify-normal ">
-        <div class="font-bold text-xl">FaceOff</div>
+        <div class="font-bold text-xl">FaceOff | Admin</div>
 
         <div class="hidden md:flex space-x-6 items-center ml-6 md:justify-between w-full ">
             <div class="flex space-x-6 items-center ">
-                <a href="{{route('home')}}" class="hover:text-teal-500 border-b border-b-teal-500">Home</a>
-                <a href="{{route('teams')}}" class="hover:text-teal-600">Teams</a>
-                <a href="#" class="hover:text-teal-600">Matches</a>
-                <a href="#" class="hover:text-teal-600">Stats</a>
+                <a href="{{route('home')}}" class="hover:text-teal-500">Public</a>
+                <a href="{{route('admin.dashboard')}}"
+                   class="hover:text-teal-600 border-b border-b-teal-500">Dashboard</a>
+
+                @access('admin.teams.*')
+                <a href="{{route('admin.team.index')}}" class="hover:text-teal-600">Manage Teams</a>
+                @endaccess
+                <a href="#" class="hover:text-teal-600">Manage Matches</a>
+                <a href="#" class="hover:text-teal-600">Manage Stats</a>
                 <a href="#" class="hover:text-teal-600">News</a>
 
                 <!-- TEAMS DROPDOWN -->
@@ -69,9 +74,11 @@
                             <a href="#"
                                class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Player
                                 Area</a>
+                            @access('admin.*')
                             <a href="{{route('admin.dashboard')}}"
                                class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Admin
                                 Area</a>
+                            @endaccess
                             <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Settings</a>
                             <hr class="my-2">
                             <form action="{{ route('logout') }}"
