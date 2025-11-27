@@ -1,3 +1,7 @@
+@php
+    $currentPageStyles = "border-b border-b-teal-500";
+@endphp
+
 <nav x-data="{ mobileOpen:false }" class="w-full bg-charcoal-light shadow-sm ">
 
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between md:justify-normal ">
@@ -5,8 +9,10 @@
 
         <div class="hidden md:flex space-x-6 items-center ml-6 md:justify-between w-full ">
             <div class="flex space-x-6 items-center ">
-                <a href="{{route('home')}}" class="hover:text-teal-500 border-b border-b-teal-500">Home</a>
-                <a href="{{route('teams')}}" class="hover:text-teal-600">Teams</a>
+                <a href="{{route('home')}}"
+                   class="hover:text-teal-500 @if(request()->routeIs('home')) {{$currentPageStyles}} @endif">Home</a>
+                <a href="{{route('teams.index')}}"
+                   class="hover:text-teal-600 @if(request()->routeIs('teams.*')) {{$currentPageStyles}} @endif">Teams</a>
                 <a href="#" class="hover:text-teal-600">Matches</a>
                 <a href="#" class="hover:text-teal-600">Stats</a>
                 <a href="#" class="hover:text-teal-600">News</a>
@@ -14,10 +20,10 @@
                 <!-- TEAMS DROPDOWN -->
                 <div x-data="{ open:false }" class="relative" @mouseleave="open = false">
                     <button
-                        @mouseenter="open = true"
+                            @mouseenter="open = true"
 
-                        @click="open = !open"
-                        class="flex items-center gap-1 hover:text-teal-500"
+                            @click="open = !open"
+                            class="flex items-center gap-1 hover:text-teal-500"
                     >
                         League
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -27,11 +33,11 @@
                     </button>
 
                     <div
-                        x-show="open"
-                        @mouseenter="open = true"
-                        @mouseleave="open = false"
-                        x-transition
-                        class="absolute bg-charcoal shadow-lg border border-zinc-800 rounded p-2 mt-2 w-40 z-50"
+                            x-show="open"
+                            @mouseenter="open = true"
+                            @mouseleave="open = false"
+                            x-transition
+                            class="absolute bg-charcoal shadow-lg border border-zinc-800 rounded p-2 mt-2 w-40 z-50"
                     >
                         <a href="#"
                            class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">About</a>
@@ -47,10 +53,10 @@
                 @auth
                     <div x-data="{ open:false }" class="relative" @mouseleave="open = false">
                         <button
-                            @mouseenter="open = true"
+                                @mouseenter="open = true"
 
-                            @click="open = !open"
-                            class="flex items-center gap-1 hover:text-teal-500"
+                                @click="open = !open"
+                                class="flex items-center gap-1 hover:text-teal-500"
                         >
                             {{auth()->user()->discord_name}}
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -60,11 +66,11 @@
                         </button>
 
                         <div
-                            x-show="open"
-                            @mouseenter="open = true"
-                            @mouseleave="open = false"
-                            x-transition
-                            class="absolute bg-charcoal shadow-lg border border-zinc-800 rounded p-2 mt-2 w-40 z-50"
+                                x-show="open"
+                                @mouseenter="open = true"
+                                @mouseleave="open = false"
+                                x-transition
+                                class="absolute bg-charcoal shadow-lg border border-zinc-800 rounded p-2 mt-2 w-40 z-50"
                         >
                             <a href="#"
                                class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Player
@@ -116,13 +122,13 @@
 
         <!-- SIDEBAR -->
         <div
-            class="absolute left-0 top-0 w-72 h-full bg-white shadow-xl p-5 overflow-y-auto"
-            x-transition:enter="transform duration-300"
-            x-transition:enter-start="-translate-x-full"
-            x-transition:enter-end="translate-x-0"
-            x-transition:leave="transform duration-300"
-            x-transition:leave-start="translate-x-0"
-            x-transition:leave-end="-translate-x-full"
+                class="absolute left-0 top-0 w-72 h-full bg-white shadow-xl p-5 overflow-y-auto"
+                x-transition:enter="transform duration-300"
+                x-transition:enter-start="-translate-x-full"
+                x-transition:enter-end="translate-x-0"
+                x-transition:leave="transform duration-300"
+                x-transition:leave-start="translate-x-0"
+                x-transition:leave-end="-translate-x-full"
         >
 
             <div class="flex items-center justify-between mb-6">

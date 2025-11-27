@@ -8,10 +8,11 @@
 
 @include('partials.admin.navbar')
 
-<main class="mt-3 container mx-auto">
+<main class="mt-3 p-3 container mx-auto">
     @yield('content')
 </main>
 
 @include('partials.scripts')
+<x-alerts/>
 </body>
 </html>

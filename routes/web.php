@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\DiscordLoginController;
+use App\Models\Team;
 use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -9,8 +10,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/teams', function () {
-    return view('teams');
-})->name('teams');
+    return view('teams', ['teams' => Team::all()]);
+})->name('teams.index');
 
 Route::get('login', function () {
     return Socialite::driver('discord')->redirect();

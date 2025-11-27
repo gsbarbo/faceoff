@@ -1,0 +1,30 @@
+@layer components {
+
+    .form {
+        @apply space-y-4;
+    }
+
+    .form-label {
+        @apply block  text-steel-gray text-sm;
+    }
+
+    .form-help-text {
+        @apply my-2 text-xs text-steel-gray;
+    }
+
+    .form-error-text {
+        @apply text-xs mb-3 mt-2 text-red-600;
+    }
+
+    .form-text-input {
+        @apply border text-sm rounded-lg block w-full p-2.5 bg-charcoal-light text-steel-gray border-steel-gray placeholder-gray-400 focus:outline-2 focus:outline-teal-500 focus:border-0;
+    }
+
+    .form-select-input {
+        @apply border text-sm rounded-lg block w-full p-2.5 bg-charcoal-light text-steel-gray border-steel-gray placeholder-gray-400 focus:outline-2 focus:outline-teal-500 focus:border-0;
+    }
+
+    .form-textarea {
+        @apply border text-sm rounded-lg block w-full p-2.5 h-28 bg-charcoal-light text-steel-gray border-steel-gray placeholder-gray-400 focus:outline-2 focus:outline-teal-500 focus:border-0;
+    }
+}
