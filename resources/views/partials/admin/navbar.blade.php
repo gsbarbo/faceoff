@@ -2,59 +2,94 @@
     $currentPageStyles = "border-b border-b-teal-500";
 @endphp
 
-<nav x-data="{ mobileOpen:false }" class="w-full bg-charcoal-light shadow-sm ">
+<nav x-data="{ mobileOpen:false }" class="w-full bg-charcoal-light shadow-sm text-sm">
 
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between md:justify-normal ">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between md:justify-normal">
         <div class="font-bold text-xl">FaceOff | Admin</div>
 
-        <div class="hidden md:flex space-x-6 items-center ml-6 md:justify-between w-full ">
+        <div class="hidden md:flex space-x-6 items-center ml-6 md:justify-between w-full">
             <div class="flex space-x-6 items-center ">
                 <a href="{{route('home')}}"
                    class="hover:text-teal-500 @if(request()->routeIs('home')) {{$currentPageStyles}} @endif">Public</a>
                 <a href="{{route('admin.dashboard')}}"
                    class="hover:text-teal-600 @if(request()->routeIs('admin.dashboard')) {{$currentPageStyles}} @endif">Dashboard</a>
 
-                @can('admin.teams.read')
+                @access('admin.*')
+                <x-navbar-dropdown title="Competition">
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Series</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Schedule
+                        Series</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Series
+                        Maps</a>
                     <a href="{{route('admin.teams.index')}}"
-                       class="hover:text-teal-600 @if(request()->routeIs('admin.teams.*')) {{$currentPageStyles}} @endif">Manage
-                        Teams</a>
-                @endcan
-                <a href="#"
-                   class="hover:text-teal-600 @if(request()->routeIs('admin.series')) {{$currentPageStyles}} @endif">Manage
-                    Matches</a>
-                <a href="#" class="hover:text-teal-600">Manage Stats</a>
-                <a href="#" class="hover:text-teal-600">News</a>
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Teams</a>
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Players</a>
+                </x-navbar-dropdown>
+                @endaccess
 
-                <!-- TEAMS DROPDOWN -->
-                <div x-data="{ open:false }" class="relative" @mouseleave="open = false">
-                    <button
-                            @mouseenter="open = true"
+                @access('admin.*')
+                <x-navbar-dropdown title="Stats & Rankings">
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Team
+                        Standings</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Player
+                        Leaderboards</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Advanced
+                        Stats</a>
+                </x-navbar-dropdown>
+                @endaccess
 
-                            @click="open = !open"
-                            class="flex items-center gap-1 hover:text-teal-500"
-                    >
-                        League
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                             stroke="currentColor" class="size-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-                        </svg>
-                    </button>
+                @access('admin.*')
+                <x-navbar-dropdown title="Game Content">
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Game Maps</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Map
+                        Pool</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Game
+                        Modes</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Banned
+                        Items</a>
+                </x-navbar-dropdown>
+                @endaccess
 
-                    <div
-                            x-show="open"
-                            @mouseenter="open = true"
-                            @mouseleave="open = false"
-                            x-transition
-                            class="absolute bg-charcoal shadow-lg border border-zinc-800 rounded p-2 mt-2 w-40 z-50"
-                    >
-                        <a href="#"
-                           class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">About</a>
-                        <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Competitive
-                            Settings</a>
-                        <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Rule
-                            Book</a>
-                    </div>
-                </div>
+                @access('admin.*')
+                <x-navbar-dropdown title="Season & Events">
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Games</a>
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Seasons</a>
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Events</a>
+                </x-navbar-dropdown>
+                @endaccess
+
+                @access('admin.*')
+                <x-navbar-dropdown title="Content Management">
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">News Articles</a>
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Comments</a>
+                    <a href="#" class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Page
+                        Content</a>
+                </x-navbar-dropdown>
+                @endaccess
+
+                @access('admin.*')
+                <x-navbar-dropdown title="User Management">
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">All Users</a>
+                    <a href="#"
+                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Roles</a>
+                </x-navbar-dropdown>
+                @endaccess
+
+                <a href="{{route('admin.dashboard')}}"
+                   class="hover:text-teal-600 @if(request()->routeIs('admin.dashboard')) {{$currentPageStyles}} @endif">Site
+                    Settings</a>
+
+
             </div>
 
             <div>

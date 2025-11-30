@@ -2,12 +2,12 @@
     $currentPageStyles = "border-b border-b-teal-500";
 @endphp
 
-<nav x-data="{ mobileOpen:false }" class="w-full bg-charcoal-light shadow-sm ">
+<nav x-data="{ mobileOpen:false }" class="w-full bg-charcoal-light shadow-sm">
 
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between md:justify-normal ">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between md:justify-normal">
         <div class="font-bold text-xl">FaceOff</div>
 
-        <div class="hidden md:flex space-x-6 items-center ml-6 md:justify-between w-full ">
+        <div class="hidden md:flex space-x-6 items-center ml-6 md:justify-between w-full">
             <div class="flex space-x-6 items-center ">
                 <a href="{{route('home')}}"
                    class="hover:text-teal-500 @if(request()->routeIs('home')) {{$currentPageStyles}} @endif">Home</a>
