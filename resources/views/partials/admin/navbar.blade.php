@@ -55,13 +55,14 @@
                 @endaccess
 
                 @access('admin.*')
-                <x-navbar-dropdown title="Season & Events">
+                <x-navbar-dropdown title="Season & Events"
+                                   :active="request()->routeIs('admin.games.*') || request()->routeIs('admin.seasons.*') || request()->routeIs('admin.events.*')">
                     <a href="{{route('admin.games.index')}}"
-                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Games</a>
+                       class="block px-3 py-1 hover:bg-charcoal-light hover:text-teal-500 @if(request()->routeIs('admin.games.*')) text-teal-500 @endif">Games</a>
                     <a href="{{route('admin.seasons.index')}}"
-                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Seasons</a>
+                       class="block px-3 py-1 hover:bg-charcoal-light hover:text-teal-500 @if(request()->routeIs('admin.seasons.*')) text-teal-500 @endif">Seasons</a>
                     <a href="{{route('admin.events.index')}}"
-                       class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Events</a>
+                       class="block px-3 py-1 hover:bg-charcoal-light hover:text-teal-500 @if(request()->routeIs('admin.events.*')) text-teal-500 @endif">Events</a>
                 </x-navbar-dropdown>
                 @endaccess
 

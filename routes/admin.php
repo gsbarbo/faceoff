@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', DashboardPageController::class)->name('dashboard')->middleware(AccessMiddleware::class.':admin.*');
 
-Route::resource('/games', GameController::class)->middleware(AccessMiddleware::class.':admin.games.*')->except('show', 'destroy');
-Route::resource('/seasons', SeasonController::class)->middleware(AccessMiddleware::class.':admin.seasons.*')->except('show', 'destroy');
-Route::resource('/events', EventController::class)->middleware(AccessMiddleware::class.':admin.events.*')->except('show', 'destroy');
+Route::resource('season-and-events/games', GameController::class)->middleware(AccessMiddleware::class.':admin.games.*')->except('show', 'destroy');
+Route::resource('season-and-events/seasons', SeasonController::class)->middleware(AccessMiddleware::class.':admin.seasons.*')->except('show', 'destroy');
+Route::resource('season-and-events/events', EventController::class)->middleware(AccessMiddleware::class.':admin.events.*')->except('show', 'destroy');
 
 Route::resource('/teams', TeamController::class)->middleware(AccessMiddleware::class.':admin.teams.*')->except('show', 'destroy');
 
