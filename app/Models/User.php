@@ -14,17 +14,25 @@ class User extends Authenticatable
 
     public function canAccess(string|array $abilities): bool
     {
+        if ($this->is_owner || $this->is_super_user) {
+            return true;
+        }
+
         $abilities = is_array($abilities) ? $abilities : [$abilities];
         $userPermissions = $this->getAllPermissions();
+
         foreach ($abilities as $check) {
+
             if (! str_contains($check, '*') && $this->hasPermissionTo($check)) {
                 return true;
             }
+
             foreach ($userPermissions as $perm) {
                 if (Str::is($check, $perm->name)) {
                     return true;
                 }
             }
+
         }
 
         return false;

@@ -4,7 +4,7 @@
     <button
             @mouseenter="open = true"
             @click="open = !open"
-            class="flex items-center gap-1 hover:text-teal-500"
+            class="flex items-center gap-1 hover:text-teal-500 cursor-pointer"
     >
         {{$title}}
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

@@ -3,19 +3,19 @@
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 new class extends Component {
     use WithPagination;
 
-    public array $columns = [];       // column configs
-    public string $model;             // e.g. App\Models\User::class
-    public string $editRoute = '';    // e.g. "admin.users.edit"
+    public array $columns = [];
+    public string $model;
+    public string $editRoute = '';
     public string $editId = 'id';
 
     public array $filters = [];
     public string $sortField = '';
     public string $sortDirection = 'asc';
-
     public string $globalSearch = '';
 
     protected array $queryString = [
@@ -26,14 +26,13 @@ new class extends Component {
     ];
 
     /* -------------------------------------------------------------
-     |  Utility Helpers
-     | -------------------------------------------------------------
-     */
+     |  Helpers
+     | ------------------------------------------------------------- */
 
     private function colConfig(string $field): array
     {
-        $config = $this->columns[$field] ?? [];
-        return is_array($config) ? $config : ['label' => $config];
+        $cfg = $this->columns[$field] ?? [];
+        return is_array($cfg) ? $cfg : ['label' => $cfg];
     }
 
     private function isSortable(string $field): bool
@@ -48,51 +47,35 @@ new class extends Component {
 
     private function relationConfig(string $field): ?array
     {
-        return $this->colConfig($field)['relation'] ?? null;
+        $cfg = $this->colConfig($field);
+        return $cfg['relation'] ?? null;
     }
 
-    private function searchableColumns(): array
+    private function eagerRelations(): array
     {
         return collect($this->columns)
-            ->filter(fn($cfg, $field) => $this->isSearchable($field))
-            ->mapWithKeys(function ($cfg, $field) {
-                $cfg = $this->colConfig($field);
-
-                if (isset($cfg['relation'])) {
-                    return [
-                        $field => [
-                            'relation' => $cfg['relation'],
-                            'display' => $cfg['display'],
-                        ]
-                    ];
-                }
-
-                return [
-                    $field => [
-                        'relation' => null,
-                        'display' => $field,
-                    ]
-                ];
-            })
-            ->toArray();
+            ->filter(fn($cfg) => is_array($cfg) && isset($cfg['relation']))
+            ->map(fn($cfg) => $cfg['relation'])
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /* -------------------------------------------------------------
      |  Lifecycle
-     | -------------------------------------------------------------
-     */
+     | ------------------------------------------------------------- */
 
-    public function updatingFilters(): void
+    public function updatingFilters()
     {
         $this->resetPage();
     }
 
-    public function updatingGlobalSearch(): void
+    public function updatingGlobalSearch()
     {
         $this->resetPage();
     }
 
-    public function sortBy(string $field): void
+    public function sortBy(string $field)
     {
         if (!$this->isSortable($field)) return;
 
@@ -107,66 +90,89 @@ new class extends Component {
     }
 
     /* -------------------------------------------------------------
-     |  Query Builder
-     | -------------------------------------------------------------
-     */
+     |  Building Result Set (N+1 SAFE)
+     | ------------------------------------------------------------- */
 
     public function with(): array
     {
-        $query = $this->model::query();
+        $query = $this->model::query()->with($this->eagerRelations());
 
-        /* EAGER LOAD RELATIONS */
-        foreach ($this->columns as $field => $cfg) {
-            $rel = $this->relationConfig($field);
-            if ($rel) $query->with($rel);
-        }
+        /* ---------- Global Search ---------- */
+        if ($this->globalSearch) {
+            $search = $this->globalSearch;
+            $query->where(function (Builder $q) use ($search) {
+                foreach ($this->columns as $field => $cfg) {
+                    $cfg = $this->colConfig($field);
 
-        /* GLOBAL SEARCH */
-        if (!empty($this->globalSearch)) {
-            $searchTerm = $this->globalSearch;
+                    if (!$this->isSearchable($field)) continue;
 
-            $query->where(function (Builder $q) use ($searchTerm) {
-                foreach ($this->searchableColumns() as $field => $cfg) {
+                    if (isset($cfg['relation'])) {
+                        $relation = $cfg['relation'];
+                        $display = $cfg['display'];
 
-                    if ($cfg['relation']) {
-                        $q->orWhereHas($cfg['relation'], function (Builder $qr) use ($cfg, $searchTerm) {
-                            $qr->where($cfg['display'], 'like', "%$searchTerm%");
-                        });
+                        $q->orWhereHas($relation, fn($qr) => $qr->where($display, 'like', "%{$search}%")
+                        );
+
                     } else {
-                        $q->orWhere($cfg['display'], 'like', "%$searchTerm%");
+                        $q->orWhere($field, 'like', "%{$search}%");
                     }
-
                 }
             });
         }
 
-        /* COLUMN FILTERS */
+        /* ---------- Column Filters ---------- */
         foreach ($this->filters as $field => $value) {
-            if (empty($value) || !$this->isSearchable($field)) continue;
+            if (!$value) continue;
 
-            $rel = $this->relationConfig($field);
+            $cfg = $this->colConfig($field);
 
-            if ($rel) {
-                $query->whereHas($rel, function (Builder $q) use ($field, $value) {
-                    $display = $this->colConfig($field)['display'];
-                    $q->where($display, 'like', "%$value%");
-                });
+            if (isset($cfg['relation'])) {
+                $relation = $cfg['relation'];
+                $display = $cfg['display'];
+
+                $query->whereHas($relation, fn($q) => $q->where($display, 'like', "%{$value}%")
+                );
+
             } else {
-                $query->where($field, 'like', "%$value%");
+                $query->where($field, 'like', "%{$value}%");
             }
         }
 
-        /* SORTING */
+        /* ---------- Sorting (including relations) ---------- */
         if ($this->sortField && $this->isSortable($this->sortField)) {
-            $query->orderBy($this->sortField, $this->sortDirection);
+            $cfg = $this->colConfig($this->sortField);
+
+            if (isset($cfg['relation'])) {
+                // Relation sorting via joinRelation
+                $relation = $cfg['relation'];
+                $display = $cfg['display'];
+
+                $query->joinRelation($relation)
+                    ->orderBy($relation.'.'.$display, $this->sortDirection)
+                    ->select($this->model::query()->getModel()->getTable().'.*');
+            } else {
+                $query->orderBy($this->sortField, $this->sortDirection);
+            }
         }
 
-        return [
-            'rows' => $query->paginate(10),
-        ];
+        /* ---------- PAGINATE + PRE-FORMAT ALL CELLS (No N+1 in View) ---------- */
+        $rows = $query->paginate(10);
+
+        $rows->getCollection()->transform(function ($row) {
+            $formatted = [];
+
+            foreach ($this->columns as $key => $cfg) {
+                $formatted[$key] = $this->formatCell($row, $key);
+            }
+
+            $row->formatted = $formatted; // store safe values
+            return $row;
+        });
+
+        return ['rows' => $rows];
     }
 
-    public function clearFilters(): void
+    public function clearFilters()
     {
         $this->filters = [];
         $this->globalSearch = '';
@@ -174,40 +180,70 @@ new class extends Component {
         $this->sortDirection = 'asc';
         $this->resetPage();
     }
-};
 
+    /* -------------------------------------------------------------
+     |  Formatting Output (Runs Once Per Row)
+     | ------------------------------------------------------------- */
+
+    public function formatCell($row, string $key)
+    {
+        $cfg = $this->colConfig($key);
+
+        /* ---------- Relation column ---------- */
+        if (isset($cfg['relation'])) {
+            $relation = $cfg['relation'];
+            $display = $cfg['display'];
+            $multiple = $cfg['multiple'] ?? false;
+
+            $related = $row->$relation;
+
+            if (!$related) return '';
+
+            if ($multiple) {
+                return $related->pluck($display)->join(', ');
+            }
+
+            return $related->$display ?? '';
+        }
+
+        /* ---------- Auto-format dates ---------- */
+        $value = data_get($row, $key);
+
+        if ($value instanceof Carbon) {
+            return $value->format($cfg['format'] ?? 'm/d/Y');
+        }
+
+        /* ---------- Custom callback formatter ---------- */
+        if (isset($cfg['format']) && is_callable($cfg['format'])) {
+            return ($cfg['format'])($value, $row);
+        }
+
+        return $value;
+    }
+};
 ?>
 
-
 <div>
-
-    {{-- GLOBAL SEARCH BAR --}}
-    {{--    <div class="mb-4">--}}
-    {{--        <input type="text"--}}
-    {{--               wire:model.live.debounce.500ms="globalSearch"--}}
-    {{--               placeholder="Search all columns…"--}}
-    {{--               class="form-text-input w-full max-w-md">--}}
-    {{--    </div>--}}
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-700">
 
-            {{-- TABLE HEADER --}}
+            {{-- Headers --}}
             <thead class="bg-charcoal-light">
             <tr>
-                @foreach($columns as $key => $colConfig)
+                @foreach($columns as $key => $col)
                     @php
-                        $label = is_array($colConfig) ? $colConfig['label'] : $colConfig;
-                        $sortable = is_array($colConfig)
-                            ? ($colConfig['sortable'] ?? true)
-                            : true;
+                        $cfg = is_array($col) ? $col : ['label' => $col];
+                        $sortable = $cfg['sortable'] ?? true;
                     @endphp
 
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider
-                               {{ $sortable ? 'cursor-pointer' : '' }}"
-                        @if($sortable) wire:click="sortBy('{{ $key }}')" @endif>
+                    <th class="px-6 py-3 text-left text-xs text-gray-400 uppercase tracking-wider
+                                   {{ $sortable ? 'cursor-pointer' : '' }}"
+                        @if($sortable)
+                            wire:click="sortBy('{{ $key }}')"
+                            @endif>
 
-                        {{ $label }}
+                        {{ $cfg['label'] }}
 
                         @if($sortable && $sortField === $key)
                             {{ $sortDirection === 'asc' ? '↑' : '↓' }}
@@ -216,76 +252,67 @@ new class extends Component {
                     </th>
                 @endforeach
 
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Actions
-                </th>
+                <th class="px-6 py-3 text-left text-xs text-gray-400 uppercase">Actions</th>
             </tr>
 
-            {{-- FILTER ROW --}}
+            {{-- Filters --}}
             <tr>
-                @foreach($columns as $key => $colConfig)
+                @foreach($columns as $key => $col)
                     @php
-                        $label = is_array($colConfig) ? $colConfig['label'] : $colConfig;
-                        $searchable = !is_array($colConfig) || (($colConfig['searchable'] ?? true));
+                        $cfg = is_array($col) ? $col : ['label' => $col];
+                        $searchable = $cfg['searchable'] ?? true;
                     @endphp
 
                     <th class="px-6 py-2">
                         @if($searchable)
                             <input type="text"
                                    wire:model.live.debounce.500ms="filters.{{ $key }}"
-                                   placeholder="Search {{ strtolower($label) }}"
-                                   class="form-text-input max-w-xl">
+                                   placeholder="Search {{ strtolower($cfg['label']) }}"
+                                   class="form-text-input">
                         @endif
                     </th>
                 @endforeach
 
                 <th class="px-6 py-2">
-                    <button class="btn btn-gray btn-sm btn-rounded" wire:click="clearFilters">
-                        Clear Filters
-                    </button>
+                    <button wire:click="clearFilters" class="btn btn-gray btn-sm">Clear</button>
                 </th>
             </tr>
             </thead>
 
-            {{-- BODY --}}
-            <tbody class="bg-charcoal-light divide-gray-700">
+            {{-- Body --}}
+            <tbody class="divide-y divide-gray-700 bg-charcoal-light">
 
             @forelse($rows as $row)
                 <tr>
-                    @foreach($columns as $key => $colConfig)
-                        <td class="px-6 py-4 whitespace-nowrap text-wrap text-sm text-steel-gray">
-
-                            @if (is_array($colConfig) && isset($colConfig['relation']))
-                                {{ $row->{$colConfig['relation']}->pluck($colConfig['display'])->join(', ') }}
-                            @else
-                                {{ data_get($row, $key) }}
-                            @endif
-
+                    @foreach($columns as $key => $cfg)
+                        <td class="px-6 py-4 text-sm text-gray-300">
+                            {{ $row->formatted[$key] }}
                         </td>
                     @endforeach
 
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="px-6 py-4">
                         <a href="{{ route($editRoute, $row->$editId) }}"
-                           class="text-teal-500 underline">
-                            Edit
-                        </a>
+                           class="text-teal-400 underline">Edit</a>
                     </td>
                 </tr>
+
             @empty
                 <tr>
                     <td colspan="{{ count($columns) + 1 }}"
-                        class="px-6 py-4 text-center text-sm text-gray-500">
+                        class="px-6 py-4 text-center text-gray-500">
                         No results found.
                     </td>
                 </tr>
             @endforelse
 
             </tbody>
+
         </table>
 
-        {{-- PAGINATION --}}
+        {{-- Pagination --}}
         <div class="mt-3">
             {{ $rows->links() }}
         </div>
     </div>
+
 </div>

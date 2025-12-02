@@ -10,16 +10,13 @@ class Season extends Model
 {
     use SoftDeletes;
 
+    protected $casts = [
+        'start_date' => 'datetime:m/d/Y',
+        'end_date' => 'datetime:m/d/Y',
+    ];
+
     public function game(): BelongsTo
     {
         return $this->belongsTo(Game::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'start_date' => 'datetime',
-            'end_date' => 'datetime',
-        ];
     }
 }

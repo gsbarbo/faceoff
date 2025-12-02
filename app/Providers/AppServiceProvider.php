@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use Event;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use SocialiteProviders\Discord\Provider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
@@ -25,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('discord', Provider::class);
+        });
+
+        Gate::before(function ($user, $ability) {
+            return ($user->is_owner || $user->is_super_user) ? true : null;
         });
 
         //        Gate::before(function ($user, $ability) {
@@ -63,5 +70,8 @@ class AppServiceProvider extends ServiceProvider
             return '<?php endif; ?>';
         });
 
+        Model::shouldBeStrict();
+        Model::unguard();
+        URL::forceScheme('https');
     }
 }

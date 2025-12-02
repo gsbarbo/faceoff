@@ -56,11 +56,11 @@
 
                 @access('admin.*')
                 <x-navbar-dropdown title="Season & Events">
-                    <a href="#"
+                    <a href="{{route('admin.games.index')}}"
                        class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Games</a>
-                    <a href="#"
+                    <a href="{{route('admin.seasons.index')}}"
                        class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Seasons</a>
-                    <a href="#"
+                    <a href="{{route('admin.events.index')}}"
                        class="block px-3 py-1 hover:bg-charcoal-light rounded hover:text-teal-500">Events</a>
                 </x-navbar-dropdown>
                 @endaccess
